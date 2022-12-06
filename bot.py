@@ -1,86 +1,87 @@
 import discord
-import responses
+import pandas as pd
+import openpyxl
+
 from discord.ext import commands
 
-async def send_message(message, user_message, is_private):
-    try:
-        response = responses.get_response(user_message)
-        if (response != None):
-            await message.author.send(response) if is_private else await message.channel.send(response)
-
-    except Exception as e:
-        print(e)
+df = pd.read_excel('test.xlsx')
 
 def run_discord_bot():
-    TOKEN = 'MTAzNzc2Njk2NDg2NjcyNzkzNg.G6WdqQ.OuQZ4jZUCWKVqKkCNXu7e5l1Q3tF0IUtBY6QdQ'
-    role1_id = 1038080407779934300
-    guild1_id = 1028637243113480214
+    TOKEN = 'MTAzNzc2Njk2NDg2NjcyNzkzNg.G5fLZ4.Gu2igYMzoYHMfsSyYxeqK8GQyEFXi_T831pLYI'
     intents = discord.Intents.default()
     intents.message_content = True
     client = commands.Bot(command_prefix = '/', intents=intents)
-    file = open('whitelist.txt', "r")
+    f_read = open('whitelist.txt', 'r')
+    original = f_read.readlines()
+    id_lst = []
+    print(df)
+    for sub in original:
+        id_lst.append(int(sub.replace("\n", "")))
 
-    @client.event
-    async def on_ready():
-        print(f'{client.user} is now running!')
+    # rajouter le owner dessus
+    # ajouter un timer pour combien de temps le bot run
 
-    @client.event
-    async def on_message(message):
-        if message.author == client.user:
-            return
-        await client.process_commands(message)
-        username = str(message.author)
-        user_message = str(message.content)
-        channel = str(message.channel)
+    @client.command()
+    async def list(ctx):
+        global df
+        print(df)
 
-        print(f'{username} said: "{user_message}" ({channel})')
-        
-        if message.content.lower().startswith('can'):
-            if message.guild:
-                member = message.author
-            else:  # private message
-                guild = client.get_guild(guild1_id)
-                member = await guild.fetch_member(message.author.id)
-            #  only user with role1 is able to send the command
-            for r in member.roles:
-                if r.id == role1_id:
-                    await message.channel.send('Yes you can!')
-                    return
-        
-        if user_message[0] == '?':
-            user_message = user_message[1:]
-            await send_message(message, user_message, is_private=True)
-        else:
-            await send_message(message, user_message, is_private=False)
-            
     @client.command()
     async def react(ctx):
-        message = await ctx.send('Are you enjoying this bot? \n')
-
+        i = 1
+        message = await ctx.send('Are you ready for christmas? \n')
         thumb_up = '👍'
 
         await message.add_reaction(thumb_up)
 
         def check(reaction, user):
             return str(reaction.emoji) in [thumb_up]
-
         
-            try:
-                reaction, user = await client.wait_for("reaction_add", timeout=10.0, check=check)
-                if str(reaction.emoji) == thumb_up:
-                    #for line in file.readlines():
-                     #   if (line != user.id):
-                      #      file.write(str(user.id) + '\n')
-                       # else:
-                        #    user.send("already in the list")
-                    #await user.send('hello this is placeholder')
-                    lines = file.readlines()
-                    for line in lines:
-                    # check if string present on a current line
-                        if line.find(str(user.id)) != -1:
-                            await user.send("already in the list")
-            except  Exception as e:
-                print(e)
-            
+        try:
+            found = 0
+            reaction, user = await client.wait_for("reaction_add", timeout=10.0, check=check)
+            if str(reaction.emoji) == thumb_up:
+                global df
+                if user.id in df['id'].unique():
+                    print("user already in list")
+                else :
+                    df = df.append(dict(zip(df.columns,[str(user.id), "123456789"])), ignore_index=True)
+                    await user.send('Message de consentement')
+        except  Exception as e:
+            print(e)
+
+    @client.event
+    async def on_message(message):
+        if message.author == client.user:
+            return
+        await client.process_commands(message)
+        if not isinstance(message.channel, discord.DMChannel):
+            return
+        global df
+        user = message.author
+        if not (user.id in df['id'].unique()):
+            await user.send("Elle est où la thune?")
+        else :
+            user_message = str(message.content)
+            print(user_message)
+            #print(df.loc[df['id'] == user.id])
+        #df = pandas.DataFrame()
+        #df = df[df.text_column.str.contains(str(message.author.id))]
+
+    #mettre un check si owner
+    @client.command()
+    async def shutdown(ctx):
+        f_read.close()
+        f_write = open('whitelist.txt', 'w')
+        print("closing")
+        for id in id_lst:
+            print(str(id))
+            f_write.write(str(id) + '\n')
+        f_write.close()
+        writer = pd.ExcelWriter('test.xlsx', engine='xlsxwriter')
+        df.to_excel(writer, sheet_name='Sheet1', index=False)
+        writer.close()
+        await ctx.bot.close()
+
 
     client.run(TOKEN)
