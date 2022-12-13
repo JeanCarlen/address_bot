@@ -8,7 +8,7 @@ df = pd.read_excel('test.xlsx')
 
 
 def run_discord_bot():
-	TOKEN = 'MTAzNzc2Njk2NDg2NjcyNzkzNg.G5fLZ4.Gu2igYMzoYHMfsSyYxeqK8GQyEFXi_T831pLYI'
+	TOKEN = ''
 	intents = discord.Intents.default()
 	intents.message_content = True
 	client = commands.Bot(command_prefix = '/', intents=intents)
@@ -28,12 +28,12 @@ def run_discord_bot():
 		global df
 		print(df)
 
-	#@commands.is_owner()
+	@commands.is_owner()
 	@client.command()
 	async def explain(ctx):
 		message = await ctx.send('Bonjour ! Je suis le bot des cartes postales. C’est moi qui récolte les informations des subs du mois de décembre pour que Mary puisse leur envoyer.  \n')
 
-	#@commands.is_owner()
+	@commands.is_owner()
 	@client.command()
 	async def bot(ctx):
 		message = await ctx.send('Bonjour c’est moi, je suis le bot des cartes postales et je suis en ligne ! Interagissez à ce message avec un “<3” si vous souhaitez que je vous envoie un message privé pour avoir vos informations pour la carte postale :)\n')
@@ -112,20 +112,12 @@ def run_discord_bot():
 					df.loc[df['id'] == str(user.id), 'city'] = None
 					df.loc[df['id'] == str(user.id), 'pays'] = None
 					await user.send("Recommençons ! Quel est ton prénom ?")
-	#@commands.is_owner()
+	@commands.is_owner()
 	@client.command()
 	async def shutdown(ctx):
 		writer = pd.ExcelWriter('test.xlsx', engine='openpyxl')
 		df.to_excel(writer, sheet_name='Sheet1', index=False)
 		writer.close()
 		await ctx.bot.close()
-
-	def print_data(user, user_line):
-		global df
-		user.send('Prénom =>' + user_line['name'].item())
-		user.send('nom =>' + user_line['surname'].item())
-		user.send('adresse =>' + user_line['address'].item())
-		user.send('code postal =>' + user_line['code postal'].item())
-		user.send('ville =>' + user_line['city'].item())
 
 	client.run(TOKEN)
