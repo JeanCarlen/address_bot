@@ -8,7 +8,7 @@ Imprime la liste des données collectées sur le terminal pendant que le bot est
 
 /explain
 
-Emvoie un message dans le channel qui explique le fonctionnement du bot
+Envoie un message dans le channel qui explique le fonctionnement du bot
 
 /bot
 
