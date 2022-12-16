@@ -8,7 +8,7 @@ df = pd.read_excel('test.xlsx')
 
 
 def run_discord_bot():
-	TOKEN = 'MTAzNzc2Njk2NDg2NjcyNzkzNg.GTAOEE.wRifu7XjQSa-95oj3xeJyCVKJl7dieeDi0zorg'
+	TOKEN = ''
 	intents = discord.Intents.default()
 	intents.message_content = True
 	client = commands.Bot(command_prefix = '/', intents=intents)
